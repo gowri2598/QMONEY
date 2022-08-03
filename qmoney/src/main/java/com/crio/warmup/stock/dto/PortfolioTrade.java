@@ -36,6 +36,12 @@ public class PortfolioTrade {
     this.tradeType = tradeType;
   }
 
+  @Override
+  public String toString() {
+    return "PortfolioTrade [purchaseDate=" + purchaseDate + ", quantity=" + quantity + ", symbol="
+        + symbol + ", tradeType=" + tradeType + "]";
+  }
+
   public void setPurchaseDate(LocalDate purchaseDate) {
     this.purchaseDate = purchaseDate;
   }

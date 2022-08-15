@@ -16,7 +16,7 @@ class PortfolioManagerApplicationTest {
   //  DO NOT MODIFY ANY FILES IN THE TESTS/ ASSESSMENTS UNLESS ASKED TO.
   //  These files are replaced from stock contents while executing the assessments.
   //  Any modifications in this file may result in Assessment failure!
-
+/* 
 
   @Test
   void mainReadFile() throws Exception {
@@ -31,8 +31,21 @@ class PortfolioManagerApplicationTest {
     //then
     Assertions.assertEquals(expected, results);
   }
+*/
 
+  @Test
+  void mainReadQuotes() throws Exception {
+    //given
+    String filename = "trades.json";
+    List<String> expected = Arrays.asList(new String[]{"MSFT", "AAPL", "GOOGL"});
 
+    //when
+    List<String> actual = PortfolioManagerApplication
+        .mainReadQuotes(new String[]{filename, "2019-12-12"});
+
+    //then
+    Assertions.assertEquals(expected, actual);
+  }
 
 
 

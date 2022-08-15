@@ -1,0 +1,1 @@
+curl https://api.tiingo.com/tiingo/daily/AAPL

@@ -16,7 +16,7 @@ class PortfolioManagerApplicationTest {
   //  DO NOT MODIFY ANY FILES IN THE TESTS/ ASSESSMENTS UNLESS ASKED TO.
   //  These files are replaced from stock contents while executing the assessments.
   //  Any modifications in this file may result in Assessment failure!
-/* 
+
 
   @Test
   void mainReadFile() throws Exception {
@@ -31,7 +31,7 @@ class PortfolioManagerApplicationTest {
     //then
     Assertions.assertEquals(expected, results);
   }
-*/
+
 
   @Test
   void mainReadQuotes() throws Exception {

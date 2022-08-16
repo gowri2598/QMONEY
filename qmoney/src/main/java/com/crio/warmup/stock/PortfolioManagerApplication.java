@@ -68,6 +68,10 @@ public class PortfolioManagerApplication {
     List<TotalReturnsDto> tests = new ArrayList<TotalReturnsDto>();
     LocalDate endDate=LocalDate.parse(args[1]);
     for(PortfolioTrade trade:trades){
+      if(trade.getPurchaseDate().isAfter(endDate)){
+        throw new RuntimeException();
+      }
+
       String url= prepareUrl(trade, endDate, getToken());
 
       TiingoCandle[] response=rt.getForObject(url,TiingoCandle[].class);

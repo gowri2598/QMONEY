@@ -69,7 +69,9 @@ public class PortfolioManagerImpl implements PortfolioManager {
   // TODO: CRIO_TASK_MODULE_REFACTOR
   //  Extract the logic to call Tiingo third-party APIs to a separate function.
   //  Remember to fill out the buildUri function and use that.
-
+  public static LocalDate getLastWorkingDate (LocalDate date){
+    return (date.getDayOfWeek().toString()=="SATURDAY")?date.minus(2, ChronoUnit.DAYS):(date.getDayOfWeek().toString()=="SUNDAY")?date.minus(2, ChronoUnit.DAYS):date;
+  }
 
   public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to)
       throws JsonProcessingException {
@@ -119,7 +121,7 @@ public class PortfolioManagerImpl implements PortfolioManager {
         List<Candle> candleList=new ArrayList<>();
         try {
           candleList = getStockQuote(portfolioTrade.getSymbol(),portfolioTrade.getPurchaseDate(),endDate).stream()
-          .filter(candle->candle.getDate().equals(portfolioTrade.getPurchaseDate())||candle.getDate().equals(endDate))
+          .filter(candle->candle.getDate().equals(portfolioTrade.getPurchaseDate())||candle.getDate().equals(getLastWorkingDate(endDate)))
           .collect(Collectors.toList());
         } catch (JsonProcessingException e) {
           // TODO Auto-generated catch block

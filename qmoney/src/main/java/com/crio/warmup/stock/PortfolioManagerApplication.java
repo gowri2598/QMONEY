@@ -4,12 +4,15 @@ package com.crio.warmup.stock;
 
 import com.crio.warmup.stock.dto.*;
 import com.crio.warmup.stock.log.UncaughtExceptionHandler;
+import com.crio.warmup.stock.portfolio.PortfolioManager;
+import com.crio.warmup.stock.portfolio.PortfolioManagerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -30,8 +33,8 @@ import org.springframework.web.client.RestTemplate;
 public class PortfolioManagerApplication {
 
   // TODO: CRIO_TASK_MODULE_JSON_PARSING
-
-
+  //RestTemplate rt=new RestTemplate();
+ // PortfolioManager portfolioManager=new PortfolioManagerImpl(rt);
   public static List<String> mainReadFile(String[] args) throws IOException, URISyntaxException {
 
      //ObjectMapper objectMapper = new ObjectMapper();
@@ -246,7 +249,7 @@ public class PortfolioManagerApplication {
         List<Candle> candleList=fetchCandles(trade, endDate, getToken()).stream()
         .filter(candle->candle.getDate().equals(trade.getPurchaseDate())||candle.getDate().equals(endDate))
         .collect(Collectors.toList());
-        return calculateAnnualizedReturns(endDate,trade,getOpeningPriceOnStartDate(candleList),getClosingPriceOnEndDate(candleList));
+        return mainCalculation(endDate,trade,getOpeningPriceOnStartDate(candleList),getClosingPriceOnEndDate(candleList));
         })
         .sorted(Comparator.comparing(AnnualizedReturn::getAnnualizedReturn).reversed())
         .collect(Collectors.toList());
@@ -264,7 +267,7 @@ public class PortfolioManagerApplication {
   //  Test the same using below specified command. The build should be successful.
   //     ./gradlew test --tests PortfolioManagerApplicationTest.testCalculateAnnualizedReturn
 
-  public static AnnualizedReturn calculateAnnualizedReturns(LocalDate endDate,
+  public static AnnualizedReturn mainCalculation (LocalDate endDate,
       PortfolioTrade trade, Double buyPrice, Double sellPrice) {
 
         
@@ -283,6 +286,27 @@ public class PortfolioManagerApplication {
 
 
 
+    
+
+    public static List<AnnualizedReturn> mainCalculateReturnsAfterRefactor(String[] args)
+    throws Exception {
+    String file = args[0];
+    
+    PortfolioManager portfolioManager=new PortfolioManagerFactory().getPortfolioManager(new RestTemplate());
+    
+    LocalDate endDate = LocalDate.parse(args[1]);
+    String contents = readFileAsString(file);
+    
+    ObjectMapper objectMapper = getObjectMapper();
+    PortfolioTrade[] portfolioTrade = objectMapper.readValue(contents, PortfolioTrade[].class);
+    return portfolioManager.calculateAnnualizedReturn(Arrays.asList(portfolioTrade), endDate);
+    }
+
+
+  private static String readFileAsString(String file) throws IOException, URISyntaxException {
+    String response=new String(Files.readAllBytes(Paths.get(Thread.currentThread().getContextClassLoader().getResource(file).toURI())));
+    return response;
+    }
 
 
 
@@ -292,11 +316,21 @@ public class PortfolioManagerApplication {
     Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
     ThreadContext.put("runId", UUID.randomUUID().toString());
 
+    printJsonObject(mainCalculateReturnsAfterRefactor(args));
+  }
 
 
-    printJsonObject(mainCalculateSingleReturn(args));
 
 
+
+  public static AnnualizedReturn calculateAnnualizedReturns(LocalDate endDate, PortfolioTrade trade,
+      double buyPrice, double sellPrice) {
+
+        LocalDate purchaseDate = trade.getPurchaseDate();
+        double years = purchaseDate.until(endDate, ChronoUnit.DAYS)/365.24;
+        double totalReturns = (sellPrice - buyPrice) / buyPrice;
+        double annualizedReturns = Math.pow((1+totalReturns), (1/years)) - 1; 
+        return new AnnualizedReturn(trade.getSymbol(), annualizedReturns, totalReturns);
   }
 }
 

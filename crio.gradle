@@ -1,0 +1,10 @@
+
+task hello {
+
+doLast {
+
+3.times { print "$it " }
+
+}
+
+}

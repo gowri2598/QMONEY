@@ -48,7 +48,6 @@ class ModuleThreeRefactorTest {
   }
 
   @Test
-  //https://api.tiingo.com/tiingo/daily/AAPL/prices?startDate=2020-01-01&endDate=2020-01-05
   public void fetchCandles() throws JsonProcessingException {
     PortfolioTrade trade = new PortfolioTrade();
     trade.setPurchaseDate(LocalDate.parse("2020-01-01"));

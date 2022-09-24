@@ -89,14 +89,13 @@ public class PortfolioManagerImpl implements PortfolioManager {
   }
 
   protected String buildUri(String symbol, LocalDate startDate, LocalDate endDate) {
-       String token="c6e11afe3005cdfea11bde94d9429bb9adee1c95";
-       String uriTemplate = "https:api.tiingo.com/tiingo/daily/$SYMBOL/prices?"
-            + "startDate=$STARTDATE&endDate=$ENDDATE&token=$APIKEY";
-       
-        uriTemplate.replace("$SYMBOL",symbol).replace("$STARTDATE",startDate.toString())
-        .replace("$ENDDATE",endDate.toString()).replace("$APIKEY", token);
-
-       return uriTemplate;
+    
+    String token = "d7ee5290251fd4882f10fde8ada179ccc1450745";
+    String uri = "https://api.tiingo.com/tiingo/daily/$SYMBOL/prices?"
+        + "startDate=$STARTDATE&endDate=$ENDDATE&token=$APIKEY";
+    return uri.replace("$APIKEY", token).replace("$SYMBOL", symbol)
+        .replace("$STARTDATE", startDate.toString())
+        .replace("$ENDDATE", endDate.toString());    
   }
   public static AnnualizedReturn mainCalculation (LocalDate endDate,
   PortfolioTrade trade, Double buyPrice, Double sellPrice) {

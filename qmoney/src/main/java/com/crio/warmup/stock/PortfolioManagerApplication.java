@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -23,7 +22,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.logging.log4j.ThreadContext;
@@ -276,25 +274,17 @@ public class PortfolioManagerApplication {
       double totalReturns=(double)(sellPrice-buyPrice)/buyPrice;
       double total_num_years = ChronoUnit.DAYS.between(trade.getPurchaseDate(), endDate)/365.24;
       double annualizedReturns = Math.pow((1 + totalReturns),(1 / total_num_years )) - 1;
-      System.out.println(total_num_years);
-      System.out.println(annualizedReturns);
+      
       return new AnnualizedReturn(trade.getSymbol(),annualizedReturns,totalReturns);
     }
-
-
-
-
-
-
-
-
-    
+    private static RestTemplate restTemplate;
+    private static PortfolioManager portfolioManager=PortfolioManagerFactory.getPortfolioManager(restTemplate);
 
     public static List<AnnualizedReturn> mainCalculateReturnsAfterRefactor(String[] args)
     throws Exception {
     String file = args[0];
     
-    PortfolioManager portfolioManager=new PortfolioManagerFactory().getPortfolioManager(new RestTemplate());
+   // PortfolioManager portfolioManager=new PortfolioManagerFactory().getPortfolioManager(new RestTemplate());
     
     LocalDate endDate = LocalDate.parse(args[1]);
     String contents = readFileAsString(file);
@@ -310,20 +300,12 @@ public class PortfolioManagerApplication {
     return response;
     }
 
-
-
-
-
   public static void main(String[] args) throws Exception {
     Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
     ThreadContext.put("runId", UUID.randomUUID().toString());
 
     printJsonObject(mainCalculateReturnsAfterRefactor(args));
   }
-
-
-
-
 
   public static AnnualizedReturn calculateAnnualizedReturns(LocalDate endDate, PortfolioTrade trade,
       double buyPrice, double sellPrice) {
@@ -335,4 +317,3 @@ public class PortfolioManagerApplication {
         return new AnnualizedReturn(trade.getSymbol(), annualizedReturns, totalReturns);
   }
 }
-

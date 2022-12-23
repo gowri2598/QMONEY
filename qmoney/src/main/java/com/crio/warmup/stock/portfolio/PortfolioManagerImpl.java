@@ -3,11 +3,11 @@ package com.crio.warmup.stock.portfolio;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.SECONDS;
-import com.crio.warmup.stock.PortfolioManagerApplication;
 import com.crio.warmup.stock.dto.AnnualizedReturn;
 import com.crio.warmup.stock.dto.Candle;
 import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
+import com.crio.warmup.stock.quotes.StockQuotesService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -28,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 public class PortfolioManagerImpl implements PortfolioManager {
 
   RestTemplate restTemplate;
+  StockQuotesService stockQuotesService;
 
 
   // Caution: Do not delete or modify the constructor, or else your build will break!
@@ -35,6 +36,9 @@ public class PortfolioManagerImpl implements PortfolioManager {
   protected PortfolioManagerImpl(RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
   }
+  protected PortfolioManagerImpl(StockQuotesService stockQuotesService) {
+    this.stockQuotesService = stockQuotesService;
+  } 
 
 
   //TODO: CRIO_TASK_MODULE_REFACTOR
@@ -68,35 +72,17 @@ public class PortfolioManagerImpl implements PortfolioManager {
 
   // TODO: CRIO_TASK_MODULE_REFACTOR
   //  Extract the logic to call Tiingo third-party APIs to a separate function.
-  //  Remember to fill out the buildUri function and use that.
+  //  Remember to fill out the buildUri function and use that.//sat->thur,sun->fri
   public static LocalDate getLastWorkingDate (LocalDate date){
     return (date.getDayOfWeek().toString()=="SATURDAY")?date.minus(2, ChronoUnit.DAYS):(date.getDayOfWeek().toString()=="SUNDAY")?date.minus(2, ChronoUnit.DAYS):date;
   }
 
   public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to)
       throws JsonProcessingException {
-    String url= buildUri(symbol, from, to);
-    //RestTemplate rt=new RestTemplate();
-    TiingoCandle[] tingoCandles=restTemplate.getForObject(url,TiingoCandle[].class);
-    if(tingoCandles!=null)
-      {
-        List<Candle> candleList=Arrays.asList(tingoCandles);
-        return candleList;
-      }
-    else{
-      return new ArrayList<Candle>();//return empty coz method dictates so
-    }
+        return stockQuotesService.getStockQuote(symbol, from, to);
   }
 
-  protected String buildUri(String symbol, LocalDate startDate, LocalDate endDate) {
-    
-    String token = "d7ee5290251fd4882f10fde8ada179ccc1450745";
-    String uri = "https://api.tiingo.com/tiingo/daily/$SYMBOL/prices?"
-        + "startDate=$STARTDATE&endDate=$ENDDATE&token=$APIKEY";
-    return uri.replace("$APIKEY", token).replace("$SYMBOL", symbol)
-        .replace("$STARTDATE", startDate.toString())
-        .replace("$ENDDATE", endDate.toString());    
-  }
+
   public static AnnualizedReturn mainCalculation (LocalDate endDate,
   PortfolioTrade trade, Double buyPrice, Double sellPrice) {
 
@@ -119,7 +105,7 @@ public class PortfolioManagerImpl implements PortfolioManager {
         .map(portfolioTrade -> {
         List<Candle> candleList=new ArrayList<>();
         try {
-          candleList = getStockQuote(portfolioTrade.getSymbol(),portfolioTrade.getPurchaseDate(),endDate).stream()
+          candleList = stockQuotesService.getStockQuote(portfolioTrade.getSymbol(),portfolioTrade.getPurchaseDate(),endDate).stream()
           .filter(candle->candle.getDate().equals(portfolioTrade.getPurchaseDate())||candle.getDate().equals(getLastWorkingDate(endDate)))
           .collect(Collectors.toList());
         } catch (JsonProcessingException e) {
@@ -131,6 +117,4 @@ public class PortfolioManagerImpl implements PortfolioManager {
         .sorted(getComparator())
         .collect(Collectors.toList());    
   }
-
-
 }

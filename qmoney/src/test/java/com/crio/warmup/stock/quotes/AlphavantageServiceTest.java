@@ -72,7 +72,7 @@ class AlphavantageServiceTest {
     List<Candle> candles = alphavantageService
         .getStockQuote("AAPL",
             LocalDate.parse("2019-01-01"), LocalDate.parse("2019-01-04"));
-    //String test = candles.get(2).toString();
+
     assertEquals(candles.get(0).getOpen(), 154.89, 0.1);
     assertEquals(candles.get(2).getClose(), 148.26, 0.1);
     assertEquals(candles.get(2).getDate(), LocalDate.parse("2019-01-04"));
@@ -106,7 +106,4 @@ class AlphavantageServiceTest {
       throw new RuntimeException(ex);
     }
   }
-
-
 }
-

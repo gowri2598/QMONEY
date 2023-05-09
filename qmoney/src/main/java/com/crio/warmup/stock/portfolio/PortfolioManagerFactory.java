@@ -33,5 +33,4 @@ public class PortfolioManagerFactory {
       StockQuotesService stockQuotesService=StockQuoteServiceFactory.INSTANCE.getService(provider, restTemplate);
       return new PortfolioManagerImpl(stockQuotesService);
    }
-
 }

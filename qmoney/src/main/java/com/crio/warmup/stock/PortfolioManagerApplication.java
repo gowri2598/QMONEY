@@ -282,6 +282,7 @@ public class PortfolioManagerApplication {
 
     public static List<AnnualizedReturn> mainCalculateReturnsAfterRefactor(String[] args)
     throws Exception {
+      
     String file = args[0];
     
    // PortfolioManager portfolioManager=new PortfolioManagerFactory().getPortfolioManager(new RestTemplate());

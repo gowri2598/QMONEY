@@ -7,6 +7,7 @@ import com.crio.warmup.stock.dto.AnnualizedReturn;
 import com.crio.warmup.stock.dto.Candle;
 import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
+import com.crio.warmup.stock.exception.StockQuoteServiceException;
 import com.crio.warmup.stock.quotes.StockQuotesService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -78,7 +79,7 @@ public class PortfolioManagerImpl implements PortfolioManager {
   }
 
   public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to)
-      throws JsonProcessingException {
+      throws JsonProcessingException, StockQuoteServiceException {
         return stockQuotesService.getStockQuote(symbol, from, to);
   }
 
@@ -108,7 +109,9 @@ public class PortfolioManagerImpl implements PortfolioManager {
           candleList = stockQuotesService.getStockQuote(portfolioTrade.getSymbol(),portfolioTrade.getPurchaseDate(),endDate).stream()
           .filter(candle->candle.getDate().equals(portfolioTrade.getPurchaseDate())||candle.getDate().equals(getLastWorkingDate(endDate)))
           .collect(Collectors.toList());
-        } catch (JsonProcessingException e) {
+
+          System.out.print(candleList);
+        } catch (Exception e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
@@ -116,5 +119,5 @@ public class PortfolioManagerImpl implements PortfolioManager {
         })
         .sorted(getComparator())
         .collect(Collectors.toList());    
-  }
+      }
 }

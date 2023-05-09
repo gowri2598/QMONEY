@@ -7,6 +7,7 @@ import com.crio.warmup.stock.dto.AlphavantageCandle;
 import com.crio.warmup.stock.dto.AlphavantageDailyResponse;
 import com.crio.warmup.stock.dto.Candle;
 import com.crio.warmup.stock.dto.TiingoCandle;
+import com.crio.warmup.stock.exception.StockQuoteServiceException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -34,14 +35,16 @@ public class AlphavantageService implements StockQuotesService {
 
   @Override
   public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to)
-      throws JsonProcessingException {
+      throws JsonProcessingException , StockQuoteServiceException{
     // TODO Auto-generated method stub
     String url= buildUri(symbol);
-
+    // System.out.print("Data is:");
+    try{
     String data = restTemplate.getForObject(url,String.class);
-    Map<LocalDate,AlphavantageCandle> dailyResponse=getObjectMapper().readValue(data,AlphavantageDailyResponse.class).getCandles(); 
 
-    List<Candle> stocks=new ArrayList<>();
+    Map<LocalDate,AlphavantageCandle> dailyResponse=getObjectMapper().readValue(data,AlphavantageDailyResponse.class).getCandles(); 
+     System.out.print("dailyResponse is:"+dailyResponse);    
+     List<Candle> stocks=new ArrayList<>();
 
     for(LocalDate date=from;!date.isAfter(to);date=date.plusDays(1)){
       AlphavantageCandle candle=dailyResponse.get(date);
@@ -51,8 +54,14 @@ public class AlphavantageService implements StockQuotesService {
         stocks.add(candle);      
       }
     }  
-    return stocks; 
+    return stocks;
   }
+  catch(Exception e){
+    //  throw e;
+    throw new StockQuoteServiceException(e.getMessage());
+
+  }
+}
 
   private static ObjectMapper getObjectMapper() {
     ObjectMapper objectMapper = new ObjectMapper();
@@ -96,6 +105,13 @@ public class AlphavantageService implements StockQuotesService {
   //  1. Write a method to create appropriate url to call Alphavantage service. The method should
   //     be using configurations provided in the {@link @application.properties}.
   //  2. Use this method in #getStockQuote.
+  // TODO: CRIO_TASK_MODULE_EXCEPTIONS
+  //   1. Update the method signature to match the signature change in the interface.
+  //   2. Start throwing new StockQuoteServiceException when you get some invalid response from
+  //      Alphavantage, or you encounter a runtime exception during Json parsing.
+  //   3. Make sure that the exception propagates all the way from PortfolioManager, so that the
+  //      external user's of our API are able to explicitly handle this exception upfront.
+  //CHECKSTYLE:OFF
 
 }
 

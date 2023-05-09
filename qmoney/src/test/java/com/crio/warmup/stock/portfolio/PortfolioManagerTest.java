@@ -84,7 +84,7 @@ class PortfolioManagerTest {
       throws Exception {
     //given
     String moduleToRun = null;
-   // moduleToRun = "REFACTOR";
+    moduleToRun = "REFACTOR";
 
     moduleToRun = "ADDITIONAL_REFACTOR";
 
@@ -112,7 +112,7 @@ class PortfolioManagerTest {
           .when(stockQuotesService).getStockQuote(eq("GOOGL"), any(), any());
     }
 
-    //when 
+    //when
     List<AnnualizedReturn> annualizedReturns = portfolioManager
         .calculateAnnualizedReturn(portfolioTrades, LocalDate.parse("2019-12-12"));
 

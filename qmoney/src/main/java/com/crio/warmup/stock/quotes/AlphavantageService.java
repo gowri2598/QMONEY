@@ -1,23 +1,18 @@
 
 package com.crio.warmup.stock.quotes;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.SECONDS;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import com.crio.warmup.stock.dto.AlphavantageCandle;
 import com.crio.warmup.stock.dto.AlphavantageDailyResponse;
 import com.crio.warmup.stock.dto.Candle;
-import com.crio.warmup.stock.dto.TiingoCandle;
 import com.crio.warmup.stock.exception.StockQuoteServiceException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import org.springframework.web.client.RestTemplate;
 
 public class AlphavantageService implements StockQuotesService {
@@ -35,16 +30,27 @@ public class AlphavantageService implements StockQuotesService {
 
   @Override
   public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to)
-      throws JsonProcessingException , StockQuoteServiceException{
+      throws StockQuoteServiceException{
     // TODO Auto-generated method stub
     String url= buildUri(symbol);
-    // System.out.print("Data is:");
+    List<Candle> stocks=new ArrayList<>();
     try{
     String data = restTemplate.getForObject(url,String.class);
 
-    Map<LocalDate,AlphavantageCandle> dailyResponse=getObjectMapper().readValue(data,AlphavantageDailyResponse.class).getCandles(); 
-     System.out.print("dailyResponse is:"+dailyResponse);    
-     List<Candle> stocks=new ArrayList<>();
+    Map<LocalDate, AlphavantageCandle> dailyResponse;
+    try {
+      dailyResponse = getObjectMapper().readValue(data,AlphavantageDailyResponse.class).getCandles();
+    } catch (JsonMappingException e) {
+      // TODO Auto-generated catch block
+      // e.printStackTrace();
+      throw new StockQuoteServiceException(e.getMessage());
+    } catch (JsonProcessingException e) {
+      
+      // TODO Auto-generated catch block
+      // e.printStackTrace();
+      throw new StockQuoteServiceException(e.getMessage());
+    } 
+     //System.out.print("dailyResponse is ______________:"+dailyResponse);    
 
     for(LocalDate date=from;!date.isAfter(to);date=date.plusDays(1)){
       AlphavantageCandle candle=dailyResponse.get(date);
@@ -54,13 +60,15 @@ public class AlphavantageService implements StockQuotesService {
         stocks.add(candle);      
       }
     }  
-    return stocks;
-  }
-  catch(Exception e){
+    // return stocks;
+  } catch(NullPointerException e){
     //  throw e;
-    throw new StockQuoteServiceException(e.getMessage());
-
+    throw new StockQuoteServiceException("{\"Information\": \"The **demo** API key is for demo purposes only. "
+    + "Please claim your free API key at (https://www.alphavantage.co/support/#api-key) to "
+    + "explore our full API offerings. It takes fewer than 20 seconds, and we are committed to "
+    + "making it free forever.\"}", e);
   }
+  return stocks;
 }
 
   private static ObjectMapper getObjectMapper() {
@@ -72,10 +80,14 @@ public class AlphavantageService implements StockQuotesService {
 //https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=AAPL&outputsize=full&apikey=HV4DI67OR0M0D2OL
   protected String buildUri(String symbol) {
     
-    String token = "S4DIVSGE5AYJ6V9N";
-    String function="TIME_SERIES_DAILY";
-    String uri = "https://www.alphavantage.co/query?function=$FUNCTION&symbol=$SYMBOL&apikey=$API_KEY";  
-    return uri.replace("$FUNCTION",function).replace("$APIKEY", token).replace("$SYMBOL", symbol);    
+    // String token = "HV4DI67OR0M0D2OL";
+    String token ="0K4LCXEQZW4RSEE6";
+    // String function="TIME_SERIES_DAILY_ADJUSTED";
+    // String uri = "https://www.alphavantage.co/query?function=$FUNCTION&symbol=$SYMBOL&apikey=$API_KEY"; 
+    // System.out.println(uri.replace("$FUNCTION",function).replace("$APIKEY", token).replace("$SYMBOL", symbol)); 
+    // return uri.replace("$FUNCTION",function).replace("$APIKEY", token).replace("$SYMBOL", symbol);    
+
+    return "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol="+symbol+"&outputsize=full&apikey="+token;
   }
 
   // TODO: CRIO_TASK_MODULE_ADDITIONAL_REFACTOR
@@ -114,4 +126,3 @@ public class AlphavantageService implements StockQuotesService {
   //CHECKSTYLE:OFF
 
 }
-

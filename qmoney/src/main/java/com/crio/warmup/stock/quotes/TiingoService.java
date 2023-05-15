@@ -5,6 +5,7 @@ import com.crio.warmup.stock.dto.Candle;
 import com.crio.warmup.stock.dto.TiingoCandle;
 import com.crio.warmup.stock.exception.StockQuoteServiceException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.LocalDate;
@@ -39,28 +40,42 @@ public class TiingoService implements StockQuotesService {
   // TODO: CRIO_TASK_MODULE_ADDITIONAL_REFACTOR
   //  Write a method to create appropriate url to call the Tiingo API.
  public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to)
-      throws JsonProcessingException,StockQuoteServiceException{
+      throws StockQuoteServiceException{
         
+      List<Candle> stocks=new ArrayList<Candle>();
+
       String url= buildUri(symbol, from, to);
       try{
       String data = restTemplate.getForObject(url,String.class);
-      Candle[] tingoCandles=getObjectMapper().readValue(data,TiingoCandle[].class);
-      List<Candle> stocks=new ArrayList<Candle>();
-
-      if(tingoCandles!=null)
-        {
-          stocks=Arrays.asList(tingoCandles);
-          return stocks;
-        }
-      else
-        {
-          return stocks;//return empty coz method dictates so
-        }
+      Candle[] tingoCandles;
+      try {
+        tingoCandles = getObjectMapper().readValue(data,TiingoCandle[].class);
+        stocks=Arrays.asList(tingoCandles);
+      } catch (JsonMappingException e) {
+        // TODO Auto-generated catch block
+       
+      throw new StockQuoteServiceException(e.getMessage());
+      } catch (JsonProcessingException e) {
+        // TODO Auto-generated catch block
+       
+      throw new StockQuoteServiceException(e.getMessage());
       }
-      catch(Exception e){
-        throw new StockQuoteServiceException(e.getMessage());
     
+
+        // if(tingoCandles!=null)
+        //   {
+  
+        //    // return stocks;
+        //   }
+        // else
+        //   {
+        //    // return stocks;//return empty coz method dictates so
+        //   }
+        
+      } catch(NullPointerException e){
+        throw new StockQuoteServiceException("Tiingo Response Invalid Return", e.getCause());
       }
+      return stocks;
     }
 
     private static ObjectMapper getObjectMapper() {

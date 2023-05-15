@@ -13,7 +13,8 @@ public class PortfolioManagerFactory {
   @Deprecated
   public static PortfolioManager getPortfolioManager(RestTemplate restTemplate) {
 
-     return new PortfolioManagerImpl(restTemplate);
+     //   return new PortfolioManagerImpl(restTemplate);
+      return getPortfolioManager("", restTemplate);
      
   }
 

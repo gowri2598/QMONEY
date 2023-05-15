@@ -79,7 +79,7 @@ public class PortfolioManagerImpl implements PortfolioManager {
   }
 
   public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to)
-      throws JsonProcessingException, StockQuoteServiceException {
+      throws StockQuoteServiceException {
         return stockQuotesService.getStockQuote(symbol, from, to);
   }
 
@@ -99,25 +99,52 @@ public class PortfolioManagerImpl implements PortfolioManager {
 
   @Override
   public List<AnnualizedReturn> calculateAnnualizedReturn(List<PortfolioTrade> portfolioTrades,
-      LocalDate endDate) {
-    
-        return portfolioTrades
-        .stream()
-        .map(portfolioTrade -> {
-        List<Candle> candleList=new ArrayList<>();
-        try {
-          candleList = stockQuotesService.getStockQuote(portfolioTrade.getSymbol(),portfolioTrade.getPurchaseDate(),endDate).stream()
-          .filter(candle->candle.getDate().equals(portfolioTrade.getPurchaseDate())||candle.getDate().equals(getLastWorkingDate(endDate)))
-          .collect(Collectors.toList());
+      LocalDate endDate) throws StockQuoteServiceException{
+        
+        List<AnnualizedReturn> anuallist=new ArrayList<>();
+        
+        
+        for(PortfolioTrade pft:portfolioTrades){
 
-          System.out.print(candleList);
-        } catch (Exception e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-        return mainCalculation(endDate,portfolioTrade,getOpeningPriceOnStartDate(candleList),getClosingPriceOnEndDate(candleList));
-        })
-        .sorted(getComparator())
-        .collect(Collectors.toList());    
+            
+          List<Candle> candleList;
+        
+          candleList = getStockQuote(pft.getSymbol(), pft.getPurchaseDate(), endDate);
+            AnnualizedReturn anualizedOutput= mainCalculation(endDate,pft,getOpeningPriceOnStartDate(candleList),getClosingPriceOnEndDate(candleList));          
+          anuallist.add(anualizedOutput);
+
+          } 
+
+        return anuallist.stream().sorted(getComparator()).collect(Collectors.toList());
+
+      //   return portfolioTrades
+      //   .stream()
+      //   .map(portfolioTrade -> {
+      //   List<Candle> candleList=new ArrayList<>();
+      
+      //     try {
+      //       if(stockQuotesService != null){
+      //         candleList = stockQuotesService.getStockQuote(portfolioTrade.getSymbol(),portfolioTrade.getPurchaseDate(),endDate);
+      //       }
+      //       else{
+      //         candleList = stockQuotesService.getStockQuote(portfolioTrade.getSymbol(),portfolioTrade.getPurchaseDate(),endDate);
+      //       }
+      //       candleList.stream().
+      //       filter(candle->candle.getDate().equals(portfolioTrade.getPurchaseDate())||candle.getDate().equals(getLastWorkingDate(endDate)))
+      //       .collect(Collectors.toList());
+
+      //     } catch (StockQuoteServiceException e) {
+      //       // TODO Auto-generated catch block
+           
+      //     }
+      //     return mainCalculation(endDate,portfolioTrade,getOpeningPriceOnStartDate(candleList),getClosingPriceOnEndDate(candleList));
+        
+      //    //System.out.print(candleList);
+       
+      //   })
+      //   .sorted(getComparator())
+      //   .collect(Collectors.toList());    
+      // }
+
       }
-}
+    }

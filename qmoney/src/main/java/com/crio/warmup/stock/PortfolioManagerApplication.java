@@ -201,7 +201,7 @@ public class PortfolioManagerApplication {
 
   
   public static String prepareUrl(PortfolioTrade trade, LocalDate endDate, String token) {
-    String Url = "https://api.tiingo.com/tiingo/daily/"+trade.getSymbol()+"/prices?startDate="+trade.getPurchaseDate().toString()+"&endDate="+endDate+"&token="+token;
+    String Url = "https://api.tiingo.com/tiingo/daily/"+trade.getSymbol()+"/prices?startDate="+trade.getPurchaseDate()+"&endDate="+endDate+"&token="+token;
     return Url;
    }
 

@@ -106,4 +106,7 @@ class AlphavantageServiceTest {
       throw new RuntimeException(ex);
     }
   }
+
+
 }
+

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -79,7 +80,7 @@ public class PortfolioManagerImpl implements PortfolioManager {
   }
 
   public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to)
-      throws StockQuoteServiceException {
+      throws StockQuoteServiceException, JsonProcessingException {
         return stockQuotesService.getStockQuote(symbol, from, to);
   }
 
@@ -99,7 +100,7 @@ public class PortfolioManagerImpl implements PortfolioManager {
 
   @Override
   public List<AnnualizedReturn> calculateAnnualizedReturn(List<PortfolioTrade> portfolioTrades,
-      LocalDate endDate) throws StockQuoteServiceException{
+      LocalDate endDate) throws StockQuoteServiceException, JsonProcessingException{
         
         List<AnnualizedReturn> anuallist=new ArrayList<>();
         
@@ -147,4 +148,40 @@ public class PortfolioManagerImpl implements PortfolioManager {
       // }
 
       }
+  @Override
+  public List<AnnualizedReturn> calculateAnnualizedReturnParallel(
+      List<PortfolioTrade> portfolioTrades, LocalDate endDate, int numThreads)
+      throws InterruptedException, StockQuoteServiceException {
+    // TODO Auto-generated method stub
+
+    List<AnnualizedReturn> anuallist=new ArrayList<>();
+    
+    final ExecutorService pool = Executors.newFixedThreadPool(numThreads);
+    List<Future<AnnualizedReturn>> futureList = new ArrayList<Future<AnnualizedReturn>>();
+      
+        
+    for(PortfolioTrade pft:portfolioTrades){
+         
+      Callable<AnnualizedReturn> callableTask = () -> {
+      List<Candle> candleList = getStockQuote(pft.getSymbol(), pft.getPurchaseDate(), endDate);
+      //AnnualizedReturn anualizedOutput=
+      return mainCalculation(endDate,pft,getOpeningPriceOnStartDate(candleList),getClosingPriceOnEndDate(candleList));          
+      };
+      Future<AnnualizedReturn> futureReturns = pool.submit(callableTask);
+      futureList.add(futureReturns);
+
     }
+    
+    for (int i = 0; i < portfolioTrades.size(); i++) {
+      Future<AnnualizedReturn> futureReturns = futureList.get(i);
+      try {
+        AnnualizedReturn returns = futureReturns.get();
+        anuallist.add(returns);
+      } catch (ExecutionException e) {
+        throw new StockQuoteServiceException("Error when calling the API", e);
+      }
+    }
+    
+    return anuallist.stream().sorted(getComparator()).collect(Collectors.toList());
+  }
+}

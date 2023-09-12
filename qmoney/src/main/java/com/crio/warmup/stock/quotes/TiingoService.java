@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.springframework.web.client.RestTemplate;
 
+
 public class TiingoService implements StockQuotesService {
 
   public static final String token = "d7ee5290251fd4882f10fde8ada179ccc1450745";
